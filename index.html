@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今天喝什麼？桃園飲料抽籤機</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* 抽籤結果展示區 */
+    .display-box {
+      background: #eef2ff;
+      border: 2px dashed #c7d2fe;
+      border-radius: 12px;
+      padding: 30px 16px;
+      text-align: center;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .drink-name {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #312e81;
+      margin-bottom: 8px;
+    }
+
+    .drink-tips {
+      font-size: 0.95rem;
+      color: #4338ca;
+      font-weight: 500;
+    }
+
+    /* 按鈕樣式 */
+    .btn-main {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .btn-main:active {
+      transform: scale(0.98);
+    }
+
+    .btn-main:hover {
+      background: var(--primary-hover);
+    }
+
+    /* 店家清單標籤區 */
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .tag {
+      background: #f1f5f9;
+      color: #334155;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-remove {
+      cursor: pointer;
+      color: #94a3b8;
+      font-weight: bold;
+    }
+
+    .tag-remove:hover {
+      color: #ef4444;
+    }
+
+    /* 新增輸入框 */
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-add {
+      background: #e2e8f0;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-add:hover {
+      background: #cbd5e1;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <header>
+        <h1>今天喝什麼？</h1>
+        <p>解決桃園人的選擇困難症！</p>
+      </header>
+
+      <div style="margin: 20px 0;">
+        <div class="display-box" id="result-box">
+          <div class="drink-name" id="drink-name">準備好了嗎？</div>
+          <div class="drink-tips" id="drink-tips">點擊下方按鈕開始抽選</div>
+        </div>
+      </div>
+
+      <button class="btn-main" id="btn-draw">幫我決定！</button>
+    </div>
+
+    <!-- 店家管理清單 -->
+    <div class="card">
+      <div class="list-header">
+        <span>候選店家清單 (<span id="count">0</span> 間)</span>
+        <button class="reset-btn" id="btn-reset">恢復預設清單</button>
+      </div>
+
+      <div class="tag-container" id="tag-container">
+        <!-- 標籤會動態產生 -->
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="custom-input" placeholder="加入喜歡的店家..." />
+        <button class="btn-add" id="btn-add">新增</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 預設的大名單（包含老牌主流、文青連鎖與桃園在地）
+    const DEFAULT_DRINKS = [
+      "50嵐", "清心福全", "COCO都可", "迷客夏", "得正", 
+      "八曜和茶", "龜記茗品", "一沐日", "麻古茶坊", "可不可熟成紅茶", 
+      "大苑子", "五桐號", "萬波島嶼紅茶", "鶴茶樓", "烏弄", 
+      "茶湯會", "COMEBUY", "再睡5分鐘", "先喝道", "珍煮丹", 
+      "茶聚", "約翰紅茶公司", "天仁茗茶", "林三茶研所", "甘蔗媽媽", 
+      "滿上仙草茶飲", "七盞茶", "鮮茶道", "歇腳亭", "双十八木", 
+      "沐白小農牧場", "春芳號", "圓石禪飲", "路易莎咖啡", "cama café"
+    ];
+
+    const SUGGESTIONS = {
+      sweetness: ["無糖", "微糖 (三分)", "半糖 (五分)", "少糖 (七分)"],
+      ice: ["去冰", "微冰", "少冰", "常溫", "溫熱"]
+    };
+
+    let drinks = [...DEFAULT_DRINKS];
+
+    const resultName = document.getElementById("drink-name");
+    const resultTips = document.getElementById("drink-tips");
+    const btnDraw = document.getElementById("btn-draw");
+    const tagContainer = document.getElementById("tag-container");
+    const countSpan = document.getElementById("count");
+    const customInput = document.getElementById("custom-input");
+    const btnAdd = document.getElementById("btn-add");
+    const btnReset = document.getElementById("btn-reset");
+
+    // 渲染候選清單標籤
+    function renderTags() {
+      tagContainer.innerHTML = "";
+      drinks.forEach((name, index) => {
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.innerHTML = `
+          <span>${name}</span>
+          <span class="tag-remove" onclick="removeDrink(${index})">&times;</span>
+        `;
+        tagContainer.appendChild(tag);
+      });
+      countSpan.textContent = drinks.length;
+    }
+
+    // 移除單一店家
+    window.removeDrink = function(index) {
+      drinks.splice(index, 1);
+      renderTags();
+    };
+
+    // 新增店家
+    function addDrink() {
+      const val = customInput.value.trim();
+      if (val && !drinks.includes(val)) {
+        drinks.push(val);
+        customInput.value = "";
+        renderTags();
+      }
+    }
+
+    btnAdd.addEventListener("click", addDrink);
+    customInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") addDrink();
+    });
+
+    // 恢復預設
+    btnReset.addEventListener("click", () => {
+      drinks = [...DEFAULT_DRINKS];
+      renderTags();
+    });
+
+    // 抽籤跳動動畫
+    let isRolling = false;
+    btnDraw.addEventListener("click", () => {
+      if (drinks.length === 0) {
+        alert("名單中沒有任何飲料店，請先新增！");
+        return;
+      }
+      if (isRolling) return;
+
+      isRolling = true;
+      btnDraw.disabled = true;
+      resultTips.textContent = "正在命中你的渴望...";
+
+      let counter = 0;
+      const speed = 50;
+      const rollCount = 20; // 跳動次數
+
+      const timer = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * drinks.length);
+        resultName.textContent = drinks[randomIndex];
+        counter++;
+
+        if (counter >= rollCount) {
+          clearInterval(timer);
+          // 產生最後結果
+          const finalIndex = Math.floor(Math.random() * drinks.length);
+          const finalChoice = drinks[finalIndex];
+          
+          // 隨機產生甜度冰塊推薦
+          const randomSweet = SUGGESTIONS.sweetness[Math.floor(Math.random() * SUGGESTIONS.sweetness.length)];
+          const randomIce = SUGGESTIONS.ice[Math.floor(Math.random() * SUGGESTIONS.ice.length)];
+
+          resultName.textContent = finalChoice;
+          resultTips.textContent = `推薦配置：${randomSweet} / ${randomIce}`;
+
+          isRolling = false;
+          btnDraw.disabled = false;
+        }
+      }, speed);
+    });
+
+    // 初始化載入
+    renderTags();
+  </script>
+</body>
+</html>
